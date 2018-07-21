@@ -1,5 +1,6 @@
 #include "AppDelegate.h"
-#include "GameScene.h"
+//#include "GameScene.h"
+#include "LoadingScene.h"
 
 // #define USE_AUDIO_ENGINE 1
 // #define USE_SIMPLE_AUDIO_ENGINE 1
@@ -110,7 +111,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     // create a scene. it's an autorelease object
 	//项目可以一到多个场景构成，一个场景可以由一到多个精灵，UI构成
-    auto scene = GameScene::CreateScene();
+    auto scene = LoadingScene::CreateScene();
 
     // run
     director->runWithScene(scene);

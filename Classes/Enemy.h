@@ -25,6 +25,7 @@ public:
 	CC_SYNTHESIZE_READONLY(int, m_hp, HP);
 	//½±Àø·ÖÖµ
 	CC_SYNTHESIZE_READONLY(int, m_score, Score);
+	
 private:
 	EnemyType m_type;
 	//float m_speed;

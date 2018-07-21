@@ -2,6 +2,7 @@
 #include "Constants.h"
 #include "time.h"
 #include "SimpleAudioEngine.h"
+#include "OverScene.h"
 
 auto cnt = 0;
 
@@ -38,16 +39,7 @@ bool GameScene::init() {
 
 	//给飞机去创建动画
 	//1.创建动画
-	//	a.创建动画对象
-	auto ani = Animation::create();
-	
-	//  b.添加动画帧,从精灵帧缓存中查找出名字
-	ani->addSpriteFrame(SpriteFrameCache::getInstance()->getSpriteFrameByName("hero2.png"));
-	ani->addSpriteFrame(SpriteFrameCache::getInstance()->getSpriteFrameByName("hero1.png"));
-	//  c.设置动画切换时长
-	ani->setDelayPerUnit(TIME_BREAK_1);
-	//  d.设置迭代次数
-	ani->setLoops(-1);
+	auto ani = AnimationCache::getInstance()->getAnimation(HERO_FLY_ANIMATION);
 	//2.将动画封装为动作
 	auto animator = Animate::create(ani);
 	//3.精灵运行动作
@@ -131,20 +123,21 @@ bool GameScene::init() {
 	//炸弹菜单,菜单有很多功能1
 	auto normalBomb = Sprite::createWithSpriteFrameName("bomb.png");
 	auto itemBomb = MenuItemSprite::create(normalBomb, normalBomb,[this] (Ref *) {
-	
-		if (this->IsPause==0) {
+		if (Director::getInstance()->isPaused()) return;
+		if (this->m_totalBombCount <= 0) return;
+		//if (this->IsPause==0) {
 			for (auto enemy : this->m_enemys) {
 				enemy->down();
 				m_totalScore += enemy->getScore();
-				auto nodeScore = this->getChildByTag(LBL_SCORE_TAG);
-				auto lblScore = dynamic_cast<Label *>(nodeScore);
-				std::string strScore = StringUtils::format("%d", m_totalScore);
-				lblScore->setString(strScore);
 			}
+			auto nodeScore = this->getChildByTag(LBL_SCORE_TAG);
+			auto lblScore = dynamic_cast<Label *>(nodeScore);
+			std::string strScore = StringUtils::format("%d", m_totalScore);
+			lblScore->setString(strScore);
 			m_totalBombCount--;
 			this->updateBomb();
 			this->m_enemys.clear();
-		}
+		//}
 		
 	});
 	
@@ -166,12 +159,10 @@ bool GameScene::init() {
 		//获取当前选择项的下标（0开始）
 		int index = dynamic_cast<MenuItemToggle *>(sender)->getSelectedIndex();
 		if (index) {
-			log("Resume");
 			Director::getInstance()->pause();
 			this->IsPause = 1;
 		}
 		else {
-			log("Pause");
 			Director::getInstance()->resume();
 			this->IsPause = 0;
 		}
@@ -303,6 +294,7 @@ void GameScene::update(float delta) {
 				}
 			}
 			if (enemy->getBoundingBox().intersectsRect(plane->getBoundingBox())) {
+				//1.执行爆炸动画				
 				auto ani = Animation::create();
 
 				//  b.添加动画帧,从精灵帧缓存中查找出名字
@@ -317,6 +309,14 @@ void GameScene::update(float delta) {
 				//2.将动画封装为动作
 				auto animator = Animate::create(ani);
 				plane->runAction(animator);
+				
+				//2.设置成员变量，isOver为true
+				//3.停止所有定时器
+				this->unscheduleAllSelectors();
+				//4.跳转结束场景
+				auto scene = OverScene::createScene(this->m_totalScore);
+				Director::getInstance()->replaceScene(scene);
+
 			}
 			
 		}
